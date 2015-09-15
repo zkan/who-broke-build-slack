@@ -7,5 +7,8 @@ SOCK_DGRAM = socket.SOCK_DGRAM
 JENKINS_USERNAME = 'your_jenkins_username'
 JENKINS_PASSWORD = 'your_jenkins_password'
 JENKINS_NOTIFICATION_UDP_PORT = 22222
+JENKINS_USERS_TO_SLACK_USERS = {
+    'jenkins_username': 'slack_username'
+}
 
-TEAM_MEMBERS = []
+SLACK_TOKEN = ''
