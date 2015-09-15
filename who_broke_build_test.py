@@ -139,6 +139,7 @@ class WhoBrokeBuildTest(unittest.TestCase):
             )
         )
 
+    @patch('who_broke_build.yell_at')
     @patch('who_broke_build.get_responsible_user')
     @patch('who_broke_build.wait_for_event')
     @patch('who_broke_build.socket')
@@ -146,7 +147,8 @@ class WhoBrokeBuildTest(unittest.TestCase):
         self,
         mock_socket,
         mock_wait_for_event,
-        mock_get_responsible_user
+        mock_get_responsible_user,
+        mock_yell_at
     ):
         full_url = 'https://ci.prontomarketing.com/job/03-Prontoworld-'
         full_url += 'AcceptanceTests-Group/193/'
@@ -171,6 +173,7 @@ class WhoBrokeBuildTest(unittest.TestCase):
 
         mock_socket.socket.return_value.recvfrom.return_value = data
         mock_wait_for_event.side_effect = [True, False]
+        mock_get_responsible_user.return_value = 'zkan'
 
         jenkins_wait_for_event()
 
@@ -233,6 +236,46 @@ class WhoBrokeBuildTest(unittest.TestCase):
         command += 'Let\'s fix it!" | slacker -c main '
         command += '-t %s -i :bear:' % settings.SLACK_TOKEN
         mock.assert_called_once_with(command, shell=True)
+
+    @patch('who_broke_build.yell_at')
+    @patch('who_broke_build.get_responsible_user')
+    @patch('who_broke_build.wait_for_event')
+    @patch('who_broke_build.socket')
+    def test_when_build_fails_it_should_yell_at_responsible_user(
+        self,
+        mock_socket,
+        mock_wait_for_event,
+        mock_get_responsible_user,
+        mock_yell_at
+    ):
+        full_url = 'https://ci.prontomarketing.com/job/03-Prontoworld-'
+        full_url += 'AcceptanceTests-Group/193/'
+        response = {
+            'name': '03-Prontoworld-AcceptanceTests-Group',
+            'url': 'job/03-Prontoworld-AcceptanceTests-Group/',
+            'build': {
+                'full_url': full_url,
+                'number': 193,
+                'phase': 'COMPLETED',
+                'status': 'FAILURE',
+                'url': 'job/03-Prontoworld-AcceptanceTests-Group/193/',
+                'scm': {},
+                'log': '',
+                'artifacts':{}
+            }
+        }
+        data = (
+            json.dumps(response),
+            ('10.3.0.20', 48580)
+        )
+
+        mock_socket.socket.return_value.recvfrom.return_value = data
+        mock_wait_for_event.side_effect = [True, False]
+        mock_get_responsible_user.return_value = 'zkan'
+
+        jenkins_wait_for_event()
+
+        mock_yell_at.assert_called_once_with('zkan')
 
 
 if __name__ == '__main__':

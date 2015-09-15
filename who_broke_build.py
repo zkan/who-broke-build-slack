@@ -50,6 +50,7 @@ def jenkins_wait_for_event():
             target = get_responsible_user(
                 notification_data['build']['full_url']
             )
+            yell_at(target)
 
 
 if __name__ == '__main__':
