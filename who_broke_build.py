@@ -42,15 +42,18 @@ def jenkins_wait_for_event():
     while wait_for_event():
         data, _ = sock.recvfrom(8 * 1024)
 
-        notification_data = json.loads(data)
-        status = notification_data['build']['status'].upper()
-        phase = notification_data['build']['phase'].upper()
+        try:
+            notification_data = json.loads(data)
+            status = notification_data['build']['status'].upper()
+            phase = notification_data['build']['phase'].upper()
 
-        if phase == 'COMPLETED' and status.startswith('FAIL'):
-            target = get_responsible_user(
-                notification_data['build']['full_url']
-            )
-            yell_at(target)
+            if phase == 'COMPLETED' and status.startswith('FAIL'):
+                target = get_responsible_user(
+                    notification_data['build']['full_url']
+                )
+                yell_at(target)
+        except:
+            pass
 
 
 if __name__ == '__main__':

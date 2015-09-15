@@ -96,6 +96,50 @@ class WhoBrokeBuildTest(unittest.TestCase):
             expected_calls
         )
 
+    @patch('who_broke_build.wait_for_event')
+    @patch('who_broke_build.socket')
+    def test_response_with_no_status_should_keep_running_with_no_error(
+        self,
+        mock_socket,
+        mock_wait_for_event
+    ):
+        full_url = 'https://ci.prontomarketing.com/job/04-Prontoworld-Deploy-'
+        full_url += 'Dev%20-%2010.3.0.20/731/'
+        response = {
+            'name': '00-Prontoworld-Checkin - 10.3.0.20',
+            'url': 'job/00-Prontoworld-Checkin%20-%2010.3.0.20/',
+            'build': {
+                'full_url': full_url,
+                'number': 1992,
+                'phase': 'COMPLETED',
+                'url': 'job/00-Prontoworld-Checkin%20-%2010.3.0.20/1992/',
+                'scm': {},
+                'log': '',
+                'artifacts': {}
+            }
+        }
+        data = (
+            json.dumps(response),
+            ('10.3.0.20', 44450)
+        )
+
+        mock_socket.socket.return_value.recvfrom.side_effect = [
+            data,
+            data
+        ]
+        mock_wait_for_event.side_effect = [True, True, False]
+
+        jenkins_wait_for_event()
+
+        self.assertEqual(mock_wait_for_event.call_count, 3)
+        expected_calls = [
+            call(8 * 1024),
+            call(8 * 1024)
+        ]
+        mock_socket.socket.return_value.recvfrom.assert_has_calls(
+            expected_calls
+        )
+
     @patch('who_broke_build.requests.get')
     def test_get_responsible_user_should_return_user_who_pushed(self, mock):
         mock.return_value.content = 'Started by GitHub push by zkan'
