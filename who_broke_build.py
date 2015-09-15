@@ -41,3 +41,7 @@ def jenkins_wait_for_event():
             target = get_responsible_user(
                 notification_data['build']['full_url']
             )
+
+
+if __name__ == '__main__':
+    jenkins_wait_for_event()
