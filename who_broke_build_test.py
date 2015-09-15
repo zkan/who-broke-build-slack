@@ -4,17 +4,25 @@ import socket
 import unittest
 
 from who_broke_build import (
-    wait_for_event,
-    jenkins_wait_for_event
+    get_responsible_user,
+    jenkins_wait_for_event,
+    wait_for_event
 )
-from settings import (
-    AF_INET,
-    SOCK_DGRAM,
-    JENKINS_NOTIFICATION_UDP_PORT
-)
+import settings
 
 
 class WhoBrokeBuildTest(unittest.TestCase):
+    def setUp(self):
+        settings.AF_INET = 2
+        settings.SOCK_DGRAM = 2
+        settings.JENKINS_USERNAME = 'zkan'
+        settings.JENKINS_PASSWORD = 'who_broke_the_build!?'
+        settings.JENKINS_NOTIFICATION_UDP_PORT = 22222
+        settings.TEAM_MEMBERS = [
+            'zkan',
+            'sandy',
+        ]
+
     def test_wait_for_event_should_just_return_true(self):
         self.assertTrue(wait_for_event())
 
@@ -30,11 +38,11 @@ class WhoBrokeBuildTest(unittest.TestCase):
         jenkins_wait_for_event()
 
         mock_socket.socket.assert_called_once_with(
-            AF_INET,
-            SOCK_DGRAM
+            settings.AF_INET,
+            settings.SOCK_DGRAM
         )
         mock_socket.socket.return_value.bind.assert_called_once_with(
-            ('', JENKINS_NOTIFICATION_UDP_PORT)
+            ('', settings.JENKINS_NOTIFICATION_UDP_PORT)
         )
 
     @patch('who_broke_build.wait_for_event')
@@ -55,6 +63,49 @@ class WhoBrokeBuildTest(unittest.TestCase):
         ]
         mock_socket.socket.return_value.recvfrom.assert_has_calls(
             expected_calls
+        )
+
+    @patch('who_broke_build.requests.get')
+    def test_get_responsible_user_should_return_user_who_pushed(self, mock):
+        mock.return_value.content = 'Started by GitHub push by zkan'
+
+        full_url = 'https://ci.prontomarketing.com/job/'
+        full_url += '04-Prontoworld-Deploy-Dev%20-%2010.3.0.20/734/'
+
+        user = get_responsible_user(full_url)
+
+        expected = 'zkan'
+        self.assertEqual(user, expected)
+
+        mock.assert_called_once_with(
+            full_url,
+            auth=(
+                settings.JENKINS_USERNAME,
+                settings.JENKINS_PASSWORD
+            )
+        )
+
+    @patch('who_broke_build.requests.get')
+    def test_get_responsible_user_should_return_user_who_ran_manually(
+        self,
+        mock
+    ):
+        mock.return_value.content = 'Started by user sandy'
+
+        full_url = 'https://ci.prontomarketing.com/job/'
+        full_url += '04-Prontoworld-Deploy-Dev%20-%2010.3.0.20/734/'
+
+        user = get_responsible_user(full_url)
+
+        expected = 'sandy'
+        self.assertEqual(user, expected)
+
+        mock.assert_called_once_with(
+            full_url,
+            auth=(
+                settings.JENKINS_USERNAME,
+                settings.JENKINS_PASSWORD
+            )
         )
 
 
