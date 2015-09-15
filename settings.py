@@ -1,0 +1,7 @@
+import socket
+
+
+AF_INET = socket.AF_INET
+SOCK_DGRAM = socket.SOCK_DGRAM
+
+JENKINS_NOTIFICATION_UDP_PORT = 22222
