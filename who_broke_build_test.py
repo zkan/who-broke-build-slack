@@ -6,7 +6,8 @@ import unittest
 from who_broke_build import (
     get_responsible_user,
     jenkins_wait_for_event,
-    wait_for_event
+    wait_for_event,
+    yell_at
 )
 import settings
 
@@ -22,6 +23,7 @@ class WhoBrokeBuildTest(unittest.TestCase):
             'sandy': 'sandy',
             'zkan': 'zkan'
         }
+        settings.SLACK_TOKEN = 'slack-token'
 
     def test_wait_for_event_should_just_return_true(self):
         self.assertTrue(wait_for_event())
@@ -222,6 +224,15 @@ class WhoBrokeBuildTest(unittest.TestCase):
             8 * 1024
         )
         self.assertEqual(mock_get_responsible_user.call_count, 0)
+
+    @patch('who_broke_build.subprocess.call')
+    def test_yell_at_build_breaker_should_execute_slacker_cli(self, mock):
+        yell_at('zkan')
+
+        command = 'echo "Hey <!channel>! <@zkan> just broke the build! '
+        command += 'Let\'s fix it!" | slacker -c main '
+        command += '-t %s -i :bear:' % settings.SLACK_TOKEN
+        mock.assert_called_once_with(command, shell=True)
 
 
 if __name__ == '__main__':
