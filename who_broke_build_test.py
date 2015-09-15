@@ -178,6 +178,51 @@ class WhoBrokeBuildTest(unittest.TestCase):
         )
         mock_get_responsible_user.assert_called_once_with(full_url)
 
+    @patch('who_broke_build.get_responsible_user')
+    @patch('who_broke_build.wait_for_event')
+    @patch('who_broke_build.socket')
+    def test_when_build_passes_it_should_not_get_any_responsible_user(
+        self,
+        mock_socket,
+        mock_wait_for_event,
+        mock_get_responsible_user
+    ):
+        full_url = 'https://ci.prontomarketing.com/job/04-Prontoworld-Deploy-'
+        full_url += 'Dev%20-%2010.3.0.20/731/'
+        response = {
+            'name': '00-Prontoworld-Checkin - 10.3.0.20',
+            'url': 'job/00-Prontoworld-Checkin%20-%2010.3.0.20/',
+            'build': {
+                'full_url': full_url,
+                'number': 1992,
+                'phase': 'COMPLETED',
+                'status': 'SUCCESS',
+                'url': 'job/00-Prontoworld-Checkin%20-%2010.3.0.20/1992/',
+                'scm': {
+                    'url': 'git@github.com:prontodev/pronto-dashboard.git',
+                    'branch': 'origin/develop',
+                    'commit': '067169c64bfe4cfe203537ccf05c9e71e7378921'
+                },
+                'log': '',
+                'artifacts': {}
+            }
+        }
+        data = (
+            json.dumps(response),
+            ('10.3.0.20', 44450)
+        )
+
+        mock_socket.socket.return_value.recvfrom.return_value = data
+        mock_wait_for_event.side_effect = [True, False]
+
+        jenkins_wait_for_event()
+
+        self.assertEqual(mock_wait_for_event.call_count, 2)
+        mock_socket.socket.return_value.recvfrom.assert_called_once_with(
+            8 * 1024
+        )
+        self.assertEqual(mock_get_responsible_user.call_count, 0)
+
 
 if __name__ == '__main__':
     unittest.main()
