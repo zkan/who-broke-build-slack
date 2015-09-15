@@ -1,3 +1,4 @@
+import json
 import re
 import requests
 import socket
@@ -30,4 +31,13 @@ def jenkins_wait_for_event():
     sock.bind(('', settings.JENKINS_NOTIFICATION_UDP_PORT))
 
     while wait_for_event():
-        sock.recvfrom(8 * 1024)
+        data, _ = sock.recvfrom(8 * 1024)
+
+        notification_data = json.loads(data)
+        status = notification_data['build']['status'].upper()
+        phase  = notification_data['build']['phase'].upper()
+
+        if phase == 'COMPLETED' and status.startswith('FAIL'):
+            target = get_responsible_user(
+                notification_data['build']['full_url']
+            )
