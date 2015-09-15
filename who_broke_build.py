@@ -14,3 +14,6 @@ def wait_for_event():
 def jenkins_wait_for_event():
     sock = socket.socket(AF_INET, SOCK_DGRAM)
     sock.bind(('', JENKINS_NOTIFICATION_UDP_PORT))
+
+    while wait_for_event():
+        sock.recvfrom(8 * 1024)
