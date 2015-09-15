@@ -7,7 +7,7 @@ import settings
 
 
 def get_responsible_user(full_url):
-    members = settings.TEAM_MEMBERS
+    members = settings.JENKINS_USERS_TO_SLACK_USERS
     response = requests.get(
         full_url,
         auth=(
@@ -16,7 +16,7 @@ def get_responsible_user(full_url):
         )
     )
 
-    for each in members:
+    for each, _ in members.iteritems():
         if ('Started by GitHub push by ' + each in response.content or \
                 'Started by user ' + each in response.content):
             return each
@@ -35,7 +35,7 @@ def jenkins_wait_for_event():
 
         notification_data = json.loads(data)
         status = notification_data['build']['status'].upper()
-        phase  = notification_data['build']['phase'].upper()
+        phase = notification_data['build']['phase'].upper()
 
         if phase == 'COMPLETED' and status.startswith('FAIL'):
             target = get_responsible_user(

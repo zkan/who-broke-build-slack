@@ -18,10 +18,10 @@ class WhoBrokeBuildTest(unittest.TestCase):
         settings.JENKINS_USERNAME = 'zkan'
         settings.JENKINS_PASSWORD = 'who_broke_the_build!?'
         settings.JENKINS_NOTIFICATION_UDP_PORT = 22222
-        settings.TEAM_MEMBERS = [
-            'zkan',
-            'sandy',
-        ]
+        settings.JENKINS_USERS_TO_SLACK_USERS = {
+            'sandy': 'sandy',
+            'zkan': 'zkan'
+        }
 
     def test_wait_for_event_should_just_return_true(self):
         self.assertTrue(wait_for_event())
