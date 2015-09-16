@@ -7,6 +7,12 @@ import subprocess
 import settings
 
 
+# http://love-python.blogspot.com/2008/07/strip-html-tags-using-python.html
+def remove_html_tags(data):
+    p = re.compile(r'<.*?>')
+    return p.sub('', data)
+
+
 def yell_at(name):
     command = 'echo "Hey <!channel>! <@%s> just broke the build! ' % name
     command += 'Let\'s fix it!" | '
@@ -25,9 +31,10 @@ def get_responsible_user(full_url):
         )
     )
 
+    content = remove_html_tags(response.content)
     for each, _ in members.iteritems():
-        if ('Started by GitHub push by ' + each in response.content or \
-                'Started by user ' + each in response.content):
+        if ('Started by GitHub push by ' + each in content or \
+                'Started by user ' + each in content):
             return each
 
 
