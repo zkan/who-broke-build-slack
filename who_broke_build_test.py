@@ -299,7 +299,7 @@ class WhoBrokeBuildTest(unittest.TestCase):
     def test_yell_at_build_breaker_should_execute_slacker_cli(self, mock):
         yell_at('zkan')
 
-        command = 'echo "Hey <!channel>! <@zkan> just broke the build! | '
+        command = 'echo "Hey <!channel>! <@zkan> just broke the build!" | '
         command += 'slacker -c main '
         command += '-t %s -i :bear:' % settings.SLACK_TOKEN
         mock.assert_called_once_with(command, shell=True)
