@@ -1,1 +1,2 @@
+python-firebase==1.2
 slacker-cli==0.2.2
