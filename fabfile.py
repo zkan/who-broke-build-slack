@@ -1,4 +1,4 @@
-from fabric.api import cd, run
+from fabric.api import cd, run, sudo
 
 
 def deploy():
@@ -6,8 +6,4 @@ def deploy():
         run('git reset --hard HEAD')
         run('git pull origin master')
         run('cp ../settings.py .')
-        try:
-            run("kill $(ps -ef | grep [w]ho_broke_build | awk '{print $2}')")
-        except:
-            pass
-        run('bash run.sh')
+        sudo('service who-broke-build-slack restart')
