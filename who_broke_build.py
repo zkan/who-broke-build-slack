@@ -14,8 +14,7 @@ def remove_html_tags(data):
 
 
 def yell_at(name):
-    command = 'echo "Hey <!channel>! <@%s> just broke the build! ' % name
-    command += 'Let\'s fix it!" | '
+    command = 'echo "Hey <!channel>! <@%s> just broke the build! | ' % name
     command += 'slacker -c main -t %s -i :bear:' % settings.SLACK_TOKEN
 
     subprocess.call(command, shell=True)
