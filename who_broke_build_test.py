@@ -20,7 +20,7 @@ class WhoBrokeBuildTest(unittest.TestCase):
         settings.JENKINS_PASSWORD = 'who_broke_the_build!?'
         settings.JENKINS_NOTIFICATION_UDP_PORT = 22222
         settings.JENKINS_USERS_TO_SLACK_USERS = {
-            'sandy': 'sandy',
+            'Sandy S': 'sandy',
             'zkan': 'zkan'
         }
         settings.SLACK_TOKEN = 'slack-token'
@@ -165,14 +165,14 @@ class WhoBrokeBuildTest(unittest.TestCase):
         self,
         mock
     ):
-        mock.return_value.content = 'Started by user sandy'
+        mock.return_value.content = 'Started by user Sandy S'
 
         full_url = 'https://ci.prontomarketing.com/job/'
         full_url += '04-Prontoworld-Deploy-Dev%20-%2010.3.0.20/734/'
 
         user = get_responsible_user(full_url)
 
-        expected = 'sandy'
+        expected = 'Sandy S'
         self.assertEqual(user, expected)
 
         mock.assert_called_once_with(
@@ -320,6 +320,46 @@ class WhoBrokeBuildTest(unittest.TestCase):
         jenkins_wait_for_event()
 
         mock_yell_at.assert_called_once_with('zkan')
+
+    @patch('who_broke_build.yell_at')
+    @patch('who_broke_build.get_responsible_user')
+    @patch('who_broke_build.wait_for_event')
+    @patch('who_broke_build.socket')
+    def test_when_build_fails_yell_at_should_take_slack_username(
+        self,
+        mock_socket,
+        mock_wait_for_event,
+        mock_get_responsible_user,
+        mock_yell_at
+    ):
+        full_url = 'https://ci.prontomarketing.com/job/03-Prontoworld-'
+        full_url += 'AcceptanceTests-Group/193/'
+        response = {
+            'name': '03-Prontoworld-AcceptanceTests-Group',
+            'url': 'job/03-Prontoworld-AcceptanceTests-Group/',
+            'build': {
+                'full_url': full_url,
+                'number': 193,
+                'phase': 'COMPLETED',
+                'status': 'FAILURE',
+                'url': 'job/03-Prontoworld-AcceptanceTests-Group/193/',
+                'scm': {},
+                'log': '',
+                'artifacts':{}
+            }
+        }
+        data = (
+            json.dumps(response),
+            ('10.3.0.20', 48580)
+        )
+
+        mock_socket.socket.return_value.recvfrom.return_value = data
+        mock_wait_for_event.side_effect = [True, False]
+        mock_get_responsible_user.return_value = 'Sandy S'
+
+        jenkins_wait_for_event()
+
+        mock_yell_at.assert_called_once_with('sandy')
 
 
 if __name__ == '__main__':
