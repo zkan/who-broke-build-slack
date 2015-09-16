@@ -166,7 +166,10 @@ class WhoBrokeBuildTest(unittest.TestCase):
         self,
         mock
     ):
-        mock.return_value.content = 'Started by user Sandy S'
+        content = '<span>'
+        content += 'Started by user <a href="/user/sandy/">Sandy S</a>'
+        content += '</span>'
+        mock.return_value.content = content
 
         full_url = 'https://ci.prontomarketing.com/job/'
         full_url += '04-Prontoworld-Deploy-Dev%20-%2010.3.0.20/734/'
@@ -183,6 +186,25 @@ class WhoBrokeBuildTest(unittest.TestCase):
                 settings.JENKINS_PASSWORD
             )
         )
+
+    @patch('who_broke_build.remove_html_tags')
+    @patch('who_broke_build.requests.get')
+    def test_get_responsible_user_should_remove_all_html_tags(
+        self,
+        mock,
+        mock_remove_html_tags
+    ):
+        content = '<span>'
+        content += 'Started by user <a href="/user/sandy/">Sandy S</a>'
+        content += '</span>'
+        mock.return_value.content = content
+
+        full_url = 'https://ci.prontomarketing.com/job/'
+        full_url += '04-Prontoworld-Deploy-Dev%20-%2010.3.0.20/734/'
+
+        get_responsible_user(full_url)
+
+        mock_remove_html_tags.assert_called_once_with(content)
 
     @patch('who_broke_build.yell_at')
     @patch('who_broke_build.get_responsible_user')

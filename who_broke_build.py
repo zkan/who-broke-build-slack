@@ -31,9 +31,10 @@ def get_responsible_user(full_url):
         )
     )
 
+    content = remove_html_tags(response.content)
     for each, _ in members.iteritems():
-        if ('Started by GitHub push by ' + each in response.content or \
-                'Started by user ' + each in response.content):
+        if ('Started by GitHub push by ' + each in content or \
+                'Started by user ' + each in content):
             return each
 
 
