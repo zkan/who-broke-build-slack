@@ -26,6 +26,8 @@ class WhoBrokeBuildTest(unittest.TestCase):
             'zkan': 'zkan'
         }
         settings.SLACK_TOKEN = 'slack-token'
+        settings.FIREBASE_STORAGE_URL = ''
+        settings.FIREBASE_OBJECT_URL = ''
 
     def test_wait_for_event_should_just_return_true(self):
         self.assertTrue(wait_for_event())
@@ -412,6 +414,11 @@ class WhoBrokeBuildTest(unittest.TestCase):
             None
         )
 
+        mock_firebase.return_value.get.assert_called_once_with(
+            '/breakers',
+            'zkan'
+        )
+
         mock_firebase.return_value.put.assert_called_once_with(
             '/breakers',
             'zkan',
@@ -432,11 +439,42 @@ class WhoBrokeBuildTest(unittest.TestCase):
             None
         )
 
+        mock_firebase.return_value.get.assert_called_once_with(
+            '/breakers',
+            'zkan'
+        )
+
         mock_firebase.return_value.put.assert_called_once_with(
             '/breakers',
             'zkan',
             6
         )
+
+    @patch('who_broke_build.put_breaker_to_firebase')
+    @patch('who_broke_build.subprocess.call')
+    def test_yell_at_should_call_put_breaker_to_firebase_if_it_is_enabled(
+        self,
+        mock,
+        mock_put_breaker
+    ):
+        settings.FIREBASE_STORAGE_URL = 'https://whobrokebuild.firebaseio.com'
+
+        yell_at('zkan')
+
+        mock_put_breaker.assert_called_once_with('zkan')
+
+    @patch('who_broke_build.put_breaker_to_firebase')
+    @patch('who_broke_build.subprocess.call')
+    def test_yell_at_should_call_put_breaker_to_firebase_if_it_is_enabled(
+        self,
+        mock,
+        mock_put_breaker
+    ):
+        settings.FIREBASE_STORAGE_URL = ''
+
+        yell_at('zkan')
+
+        self.assertEqual(mock_put_breaker.call_count, 0)
 
 
 if __name__ == '__main__':

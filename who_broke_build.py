@@ -39,6 +39,9 @@ def yell_at(name):
 
     subprocess.call(command, shell=True)
 
+    if settings.FIREBASE_STORAGE_URL:
+        put_breaker_to_firebase(name)
+
 
 def get_responsible_user(full_url):
     members = settings.JENKINS_USERS_TO_SLACK_USERS
