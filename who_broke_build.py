@@ -7,6 +7,12 @@ import subprocess
 import settings
 
 
+# http://love-python.blogspot.com/2008/07/strip-html-tags-using-python.html
+def remove_html_tags(data):
+    p = re.compile(r'<.*?>')
+    return p.sub('', data)
+
+
 def yell_at(name):
     command = 'echo "Hey <!channel>! <@%s> just broke the build! ' % name
     command += 'Let\'s fix it!" | '

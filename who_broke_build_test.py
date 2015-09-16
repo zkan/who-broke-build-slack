@@ -6,6 +6,7 @@ import unittest
 from who_broke_build import (
     get_responsible_user,
     jenkins_wait_for_event,
+    remove_html_tags,
     wait_for_event,
     yell_at
 )
@@ -360,6 +361,16 @@ class WhoBrokeBuildTest(unittest.TestCase):
         jenkins_wait_for_event()
 
         mock_yell_at.assert_called_once_with('sandy')
+
+    def test_remove_all_html_tags(self):
+        html = '<span>'
+        html += 'Started by user <a href="/user/zkan">Kan Ouivirach</a>'
+        html += '</span>'
+
+        result = remove_html_tags(html)
+
+        expected = 'Started by user Kan Ouivirach'
+        self.assertEqual(result, expected)
 
 
 if __name__ == '__main__':
