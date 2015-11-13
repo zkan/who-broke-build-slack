@@ -26,6 +26,7 @@ class WhoBrokeBuildTest(unittest.TestCase):
             'zkan': 'zkan'
         }
         settings.SLACK_TOKEN = 'slack-token'
+        settings.SLACK_CHANNEL = 'builds'
         settings.FIREBASE_STORAGE_URL = ''
         settings.FIREBASE_OBJECT_URL = ''
 
@@ -303,7 +304,7 @@ class WhoBrokeBuildTest(unittest.TestCase):
         yell_at('zkan')
 
         command = 'echo "Hey <!channel>! <@zkan> just broke the build!" | '
-        command += 'slacker -c main '
+        command += 'slacker -c %s ' % settings.SLACK_CHANNEL
         command += '-t %s -i :bear:' % settings.SLACK_TOKEN
         mock.assert_called_once_with(command, shell=True)
 
