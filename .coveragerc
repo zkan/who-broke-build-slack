@@ -12,3 +12,4 @@ ignore_errors = True
 
 omit =
     *_test.py
+    settings.py
