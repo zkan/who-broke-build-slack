@@ -1,14 +1,16 @@
 language: python
 
 python:
-  - "2.7"
+  - 2.7
 
 before_install:
   - pip install codecov
 
-install: "pip install -r requirements.txt"
+install:
+  - pip install -r requirements.txt
 
-script: python who_broke_build_test.py
+script:
+  - coverage run who_broke_build_test.py
 
 after_success:
   - codecov
